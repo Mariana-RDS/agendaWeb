@@ -24,7 +24,7 @@ Este projeto implementa um sistema de agenda online desenvolvido com o framework
 
 ## Diagrama de Classes
 
-O diagrama de classes ilustra a estrutura do sistema, mostrando as classes principais, seus atributos e métodos, bem como os relacionamentos entre elas. Ele descreve como as classes se organizam e interagem no sistema para realizar funcionalidades como cadastro de usuário, login, cadastro de contatos, entre outras. 
+O diagrama de classes ilustra a estrutura do sistema, mostrando as classes principais, seus atributos e métodos, bem como os relacionamentos entre elas. 
 
 Este diagrama é fundamental para entender a arquitetura e o design do sistema, proporcionando uma visão clara de como os dados e comportamentos estão estruturados.
 

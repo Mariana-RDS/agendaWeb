@@ -26,4 +26,4 @@ Este projeto implementa um sistema de agenda online desenvolvido com o framework
 
 O diagrama de caso de uso ilustra as interações principais do sistema com os usuários. Ele descreve como o usuário interage com o sistema para realizar ações como se cadastrar, logar, adicionar contatos e buscar contatos.
 
-![Diagrama de Caso de Uso]("src\main\resources\static\images\diagramaAgendaWeb.jpg")
+![Diagrama de Caso de Uso](src\main\resources\static\images\diagramaAgendaWeb.jpg)

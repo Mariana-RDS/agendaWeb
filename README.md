@@ -22,8 +22,10 @@ Este projeto implementa um sistema de agenda online desenvolvido com o framework
 - **Thymeleaf**: Motor de templates para a renderização de páginas HTML.
 - **Banco de Dados Relacional - Postgresql**: Para armazenar as informações do usuário e seus contatos.
 
-## Diagrama de Caso de Uso
+## Diagrama de Classes
 
-O diagrama de caso de uso ilustra as interações principais do sistema com os usuários. Ele descreve como o usuário interage com o sistema para realizar ações como se cadastrar, logar, adicionar contatos e buscar contatos.
+O diagrama de classes ilustra a estrutura do sistema, mostrando as classes principais, seus atributos e métodos, bem como os relacionamentos entre elas. Ele descreve como as classes se organizam e interagem no sistema para realizar funcionalidades como cadastro de usuário, login, cadastro de contatos, entre outras. 
 
-![Diagrama de Caso de Uso](src/main/resources/static/images/diagramaAgendaWeb.jpg)
+Este diagrama é fundamental para entender a arquitetura e o design do sistema, proporcionando uma visão clara de como os dados e comportamentos estão estruturados.
+
+![Diagrama de Classes](src/main/resources/static/images/diagramaAgendaWeb.jpg)

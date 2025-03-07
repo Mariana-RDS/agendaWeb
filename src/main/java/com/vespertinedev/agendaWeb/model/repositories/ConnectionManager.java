@@ -1,4 +1,4 @@
-package com.vespertinedev.agendaWeb.repository;
+package com.vespertinedev.agendaWeb.model.repositories;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -28,4 +28,4 @@ O diagrama de classes ilustra a estrutura do sistema, mostrando as classes princ
 
 Este diagrama é fundamental para entender a arquitetura e o design do sistema, proporcionando uma visão clara de como os dados e comportamentos estão estruturados.
 
-![Diagrama de Classes](src/main/resources/static/images/diagramaAgendaWeb.jpg)
+![Diagrama de Classes](src/main/resources/static/images/diagramaAgendaWeb.png)

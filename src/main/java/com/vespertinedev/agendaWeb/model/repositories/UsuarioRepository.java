@@ -1,94 +1,110 @@
 package com.vespertinedev.agendaWeb.model.repositories;
 
 import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
-import com.vespertinedev.agendaWeb.model.entity.EnderecoEntity;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.Statement;
+import org.springframework.stereotype.Repository;
 
-public final class UsuarioRepository implements Repository<UsuarioEntity, Integer>{
+@Repository
+public final class UsuarioRepository implements GenericRepository<UsuarioEntity, Integer>{
 
     protected UsuarioRepository(){}
 
+
+
     @Override
-    public void create(UsuarioEntity z) throws SQLException{
+    public void create(UsuarioEntity z) throws SQLException {
+        String sqlUsuario = "INSERT INTO Usuario (nome, username, password, telefone_num, rua, cidade, estado) VALUES(?,?,?,?,?,?,?)";
 
-        String sql = "INSERT INTO Usuario (nome, username, password, telefone_num, id_endereco) VALUES(?,?,?,?,?)";
 
-        try(Connection conn = ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
+        try (Connection conn = ConnectionManager.getCurrentConnection()) {
 
-            pstm.setString(1,z.getNome());
-            pstm.setString(2,z.getUsername());
-            pstm.setString(3,z.getPassword());
-            pstm.setString(4,z.getTelefoneNum());
-            pstm.setInt(5, z.getEnderecoEntity().getId());
+            conn.setAutoCommit(false);
 
-            pstm.executeUpdate();
+            try (PreparedStatement pstmUsuario = conn.prepareStatement(sqlUsuario, Statement.RETURN_GENERATED_KEYS)) {
+                pstmUsuario.setString(1, z.getNome());
+                pstmUsuario.setString(2, z.getUsername());
+                pstmUsuario.setString(3, z.getPassword());
+                pstmUsuario.setString(4, z.getTelefoneNum());
+                pstmUsuario.setString(5, z.getRua());
+                pstmUsuario.setString(6, z.getCidade());
+                pstmUsuario.setString(7, z.getEstado());
+                pstmUsuario.executeUpdate();
 
-            int id = 0;
-            try(ResultSet generatedKeys = pstm.getGeneratedKeys()){
-                if(generatedKeys.next()){
-                    id = generatedKeys.getInt(1);
+                try (ResultSet generatedKeys = pstmUsuario.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        z.setId(generatedKeys.getInt(1));
+                    }
+                }
+
+                conn.commit();
+
+            } catch (SQLException e) {
+
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+                e.printStackTrace();
+                throw e;
+            } finally {
+
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 }
             }
         }
     }
 
-    @Override
-    public void update(UsuarioEntity z) throws SQLException{
-        String sql = "UPDATE Usuario SET nome=?, username=?, password=?, telefone_num=?, id_endereco=? WHERE id=?";
 
-        try(Connection conn = ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql)){
-            pstm.setString(1,z.getNome());
-            pstm.setString(2,z.getUsername());
-            pstm.setString(3,z.getPassword());
-            pstm.setString(4,z.getTelefoneNum());
-            pstm.setInt(5,z.getEnderecoEntity().getId());
-            pstm.setInt(6,z.getId());
+    @Override
+    public void update(UsuarioEntity z) throws SQLException {
+        String sql = "UPDATE Usuario SET nome=?, username=?, password=?, telefone_num=?, rua=?, cidade=?, estado=? WHERE id=?";
+
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+            pstm.setString(1, z.getNome());
+            pstm.setString(2, z.getUsername());
+            pstm.setString(3, z.getPassword());
+            pstm.setString(4, z.getTelefoneNum());
+            pstm.setString(5, z.getRua());
+            pstm.setString(6, z.getCidade());
+            pstm.setString(7, z.getEstado());
+            pstm.setInt(8, z.getId());
 
             pstm.executeUpdate();
-
-            EnderecoEntity endereco = z.getEnderecoEntity();
-            String sqlEndereco = "UPDATE Endereco SET rua = ?, cidade = ?, estado = ? WHERE id = ?";
-
-            try (PreparedStatement pstmEndereco = conn.prepareStatement(sqlEndereco)) {
-                pstmEndereco.setString(1, endereco.getRua());
-                pstmEndereco.setString(2, endereco.getCidade());
-                pstmEndereco.setString(3, endereco.getEstado());
-                pstmEndereco.setInt(4, endereco.getId());
-                pstmEndereco.executeUpdate();
-            }
         }
     }
 
     @Override
-    public UsuarioEntity read(Integer k) throws SQLException{
+    public UsuarioEntity read(Integer k) throws SQLException {
         String sql = "SELECT * FROM Usuario WHERE id = ?";
-        try(Connection conn = ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql)){
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
 
-            pstm.setInt(1,k);
+            pstm.setInt(1, k);
             ResultSet result = pstm.executeQuery();
 
             UsuarioEntity u = null;
 
-            if(result.next()){
+            if (result.next()) {
                 u = new UsuarioEntity();
                 u.setId(result.getInt("id"));
                 u.setNome(result.getString("nome"));
                 u.setUsername(result.getString("username"));
                 u.setPassword(result.getString("password"));
                 u.setTelefoneNum(result.getString("telefone_num"));
-
-                Integer enderecoId = result.getInt("id_endereco");
-                EnderecoEntity endereco = new EnderecoEntity();
-                endereco.setId(enderecoId);
-                u.setEnderecoEntity(endereco);
+                u.setRua(result.getString("rua"));
+                u.setCidade(result.getString("cidade"));
+                u.setEstado(result.getString("estado"));
             }
             return u;
         }
@@ -103,4 +119,33 @@ public final class UsuarioRepository implements Repository<UsuarioEntity, Intege
             pstm.executeUpdate();
         }
     }
+
+    public UsuarioEntity findByUsername(String username) throws SQLException {
+        String sql = "SELECT * FROM Usuario WHERE username = ?";
+
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+
+            pstm.setString(1, username);
+            ResultSet result = pstm.executeQuery();
+
+            if (result.next()) {
+                UsuarioEntity u = new UsuarioEntity();
+                u.setId(result.getInt("id"));
+                u.setNome(result.getString("nome"));
+                u.setUsername(result.getString("username"));
+                u.setPassword(result.getString("password"));
+                u.setTelefoneNum(result.getString("telefone_num"));
+                u.setRua(result.getString("rua"));
+                u.setCidade(result.getString("cidade"));
+                u.setEstado(result.getString("estado"));
+
+                return u;
+            }
+        }
+        return null;
+    }
+
+
+
 }

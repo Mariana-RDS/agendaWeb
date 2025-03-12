@@ -9,19 +9,18 @@ import java.util.List;
 @NoArgsConstructor
 public class ContatoEntity {
 
-    private int id;
+    private Integer id;
     private String nome;
     private String email;
     private UsuarioEntity usuarioEntity;
     private EnderecoEntity enderecoEntity;
-    private TelefoneEntity telefoneEntity;
     private List<TelefoneEntity> telefones = new ArrayList<>();
 
-    public int getId(){
+    public Integer getId(){
         return id;
     }
 
-    public void setId(int id){
+    public void setId(Integer id){
         this.id = id;
     }
 

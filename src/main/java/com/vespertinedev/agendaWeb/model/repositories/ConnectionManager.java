@@ -9,23 +9,43 @@ public class ConnectionManager {
     private static final String USER = "postgres";
     private static final String PASSWORD = "admin";
 
-    private static Connection conn = null;
+    public static Connection getCurrentConnection() throws SQLException {
 
-    static Connection getCurrentConnection() throws SQLException{
-
-        if (conn == null){
-            try{
-                Class.forName("org.postgresql.Driver");
-                conn = DriverManager.getConnection(URL, USER, PASSWORD);
-            }catch(ClassNotFoundException e){
-                e.printStackTrace();
-            }
-        }
-        return conn;
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    static Connection getNewConnection() throws SQLException{
+    public static Connection getNewConnection() throws SQLException {
+
         return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public static void closeConnection(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println("Erro ao fechar a conexão: " + e.getMessage());
+            }
+        }
+    }
+
+    public static boolean isConnectionValid(Connection conn) {
+        try {
+            if (conn != null && !conn.isClosed()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao verificar conexão: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public static void registerDriver() {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            System.out.println("Erro ao carregar o driver JDBC: " + e.getMessage());
+        }
     }
 
 }

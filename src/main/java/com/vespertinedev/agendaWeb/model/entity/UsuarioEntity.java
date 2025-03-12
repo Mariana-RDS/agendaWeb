@@ -9,19 +9,21 @@ import java.util.List;
 @NoArgsConstructor
 public class UsuarioEntity {
 
-    private int id;
+    private Integer id;
     private String nome;
     private String username;
     private String password;
     private String telefone_num;
-    private EnderecoEntity enderecoEntity;
+    private String rua;
+    private String cidade;
+    private String estado;
     private List<ContatoEntity> contatos = new ArrayList<>();
 
-    public int getId(){
+    public Integer getId(){
         return id;
     }
 
-    public void setId(int id){
+    public void setId(Integer id){
         this.id = id;
     }
 
@@ -57,12 +59,28 @@ public class UsuarioEntity {
         this.telefone_num = telefone_num;
     }
 
-    public EnderecoEntity getEnderecoEntity(){
-        return enderecoEntity;
+    public String getRua() {
+        return rua;
     }
 
-    public void setEnderecoEntity(EnderecoEntity enderecoEntity){
-        this.enderecoEntity = enderecoEntity;
+    public void setRua(String rua) {
+        this.rua = rua;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public List<ContatoEntity> getContatos(){

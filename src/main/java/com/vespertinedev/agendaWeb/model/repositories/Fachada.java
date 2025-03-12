@@ -5,17 +5,20 @@ import java.util.List;
 
 import com.vespertinedev.agendaWeb.model.entity.ContatoEntity;
 import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
 public class Fachada {
 
     private static Fachada myself = null;
 
+
     private Repository<ContatoEntity, Integer> rContato = null;
-    private Repository<UsuarioEntity, Integer> rUsuario = null;
+    private GenericRepository<UsuarioEntity, Integer> rUsuario = null;
+
+    private Fachada() {
+        this.rContato = new ContatoRepository();
+        this.rUsuario = new UsuarioRepository();
+    }
+
 
     public static Fachada getCurrentInstance(){
         if(myself == null){
@@ -61,4 +64,5 @@ public class Fachada {
     public void deleteUsuario(int id) throws SQLException{
         this.rUsuario.delete(id);
     }
+
 }

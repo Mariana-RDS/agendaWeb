@@ -1,7 +1,6 @@
 package com.vespertinedev.agendaWeb.model.repositories;
 
 import com.vespertinedev.agendaWeb.model.entity.ContatoEntity;
-import com.vespertinedev.agendaWeb.model.entity.EnderecoEntity;
 import com.vespertinedev.agendaWeb.model.entity.TelefoneEntity;
 import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
 
@@ -13,153 +12,137 @@ import java.sql.Statement;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
-public final class ContatoRepository implements Repository<ContatoEntity, Integer>{
+@Repository
+public final class ContatoRepository implements GenericRepository<ContatoEntity, Integer> {
 
-    protected  ContatoRepository(){}
+    public ContatoRepository() {}
 
     @Override
-    public void create(ContatoEntity z) throws SQLException {
+    public void create(ContatoEntity contato) throws SQLException {
+        throw new UnsupportedOperationException("");
+    }
 
-        String sqlEndereco = "INSERT INTO Endereco(rua, cidade, estado) VALUES(?, ?, ?)";
-        int idEndereco = 0;
+    public void create(ContatoEntity z, Integer usuarioId) throws SQLException {
+        String sqlContato = "INSERT INTO Contato (nome, email, id_usuario, rua, cidade, estado) VALUES(?,?,?,?,?,?)";
 
         try (Connection conn = ConnectionManager.getCurrentConnection()) {
             conn.setAutoCommit(false);
 
-
-            if (z.getEnderecoEntity().getId() == 0) {
-                try (PreparedStatement pstm = conn.prepareStatement(sqlEndereco, Statement.RETURN_GENERATED_KEYS)) {
-                    pstm.setString(1, z.getEnderecoEntity().getRua());
-                    pstm.setString(2, z.getEnderecoEntity().getCidade());
-                    pstm.setString(3, z.getEnderecoEntity().getEstado());
-                    pstm.executeUpdate();
-
-                    try (ResultSet generatedKeys = pstm.getGeneratedKeys()) {
-                        if (generatedKeys.next()) {
-                            idEndereco = generatedKeys.getInt(1);
-                        }
-                    }
-                }
-            } else {
-                idEndereco = z.getEnderecoEntity().getId();
-            }
-
-
-            String sqlContato = "INSERT INTO Contato (nome, email, id_usuario, id_endereco) VALUES(?,?,?,?)";
-            int idContato = 0;
-
             try (PreparedStatement pstm = conn.prepareStatement(sqlContato, Statement.RETURN_GENERATED_KEYS)) {
                 pstm.setString(1, z.getNome());
                 pstm.setString(2, z.getEmail());
-                pstm.setInt(3, z.getUsuarioEntity().getId());
-                pstm.setInt(4, idEndereco);
+                pstm.setInt(3, usuarioId);
+                pstm.setString(4, z.getRua());
+                pstm.setString(5, z.getCidade());
+                pstm.setString(6, z.getEstado());
                 pstm.executeUpdate();
 
                 try (ResultSet generatedKeys = pstm.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        idContato = generatedKeys.getInt(1);
+                        z.setId(generatedKeys.getInt(1));
                     }
                 }
             }
-
 
             if (z.getTelefones() != null && !z.getTelefones().isEmpty()) {
                 String sqlTelefone = "INSERT INTO Telefone(numero, id_contato) VALUES(?,?)";
                 try (PreparedStatement pstmTelefone = conn.prepareStatement(sqlTelefone)) {
                     for (TelefoneEntity telefone : z.getTelefones()) {
                         pstmTelefone.setString(1, telefone.getNumero());
-                        pstmTelefone.setInt(2, idContato);
+                        pstmTelefone.setInt(2, z.getId());
                         pstmTelefone.addBatch();
                     }
                     pstmTelefone.executeBatch();
                 }
             }
-
-            conn.commit(); 
-
+            conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw e;
         }
     }
 
     @Override
-    public void update(ContatoEntity z) throws SQLException{
-        String sql = "UPDATE Contato SET  nome=?, email=?, id_usuario=?, id_endereco=? WHERE id=?";
+    public void update(ContatoEntity contato) throws SQLException {
+        throw new UnsupportedOperationException("");
+    }
 
-        try(Connection conn = ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql)){
-            pstm.setString(1,z.getNome());
-            pstm.setString(2,z.getEmail());
-            pstm.setInt(3,z.getUsuarioEntity().getId());
-            pstm.setInt(4,z.getEnderecoEntity().getId());
-            pstm.setInt(5,z.getId());
+    public void update(ContatoEntity z, Integer usuarioId) throws SQLException {
+        String sqlContato = "UPDATE Contato SET nome=?, email=?, id_usuario=?, rua=?, cidade=?, estado=? WHERE id=?";
+        Connection conn = null;
 
-            pstm.executeUpdate();
+        try {
+            conn = ConnectionManager.getCurrentConnection();
+            conn.setAutoCommit(false);
 
-            EnderecoEntity endereco = z.getEnderecoEntity();
-            String sqlEndereco = "UPDATE Endereco SET rua = ?, cidade = ?, estado = ? WHERE id = ?";
+            try (PreparedStatement pstmContato = conn.prepareStatement(sqlContato)) {
 
-            try (PreparedStatement pstmEndereco = conn.prepareStatement(sqlEndereco)) {
-                pstmEndereco.setString(1, endereco.getRua());
-                pstmEndereco.setString(2, endereco.getCidade());
-                pstmEndereco.setString(3, endereco.getEstado());
-                pstmEndereco.setInt(4, endereco.getId());
-                pstmEndereco.executeUpdate();
+                pstmContato.setString(1, z.getNome());
+                pstmContato.setString(2, z.getEmail());
+                pstmContato.setInt(3, usuarioId);
+                pstmContato.setString(4, z.getRua());
+                pstmContato.setString(5, z.getCidade());
+                pstmContato.setString(6, z.getEstado());
+                pstmContato.setInt(7, z.getId());
+                pstmContato.executeUpdate();
             }
 
-            if(z.getTelefones() != null && !z.getTelefones().isEmpty()){
-                sql = "UPDATE Telefone SET numero=? WHERE id=?";
-                try(PreparedStatement pstmTelefone = conn.prepareStatement(sql)){
-                    for(TelefoneEntity telefone : z.getTelefones()){
-                        pstmTelefone.setString(1,telefone.getNumero());
-                        pstmTelefone.setInt(2,telefone.getId());
+            if (z.getTelefones() != null && !z.getTelefones().isEmpty()) {
+                String sqlTelefone = "UPDATE Telefone SET numero=? WHERE id=? AND id_contato=?";
+                try (PreparedStatement pstmTelefone = conn.prepareStatement(sqlTelefone)) {
+                    for (TelefoneEntity telefone : z.getTelefones()) {
+                        if (telefone.getId() == null) {
+                            throw new SQLException("ID do telefone não pode ser nulo");
+                        }
+                        pstmTelefone.setString(1, telefone.getNumero());
+                        pstmTelefone.setInt(2, telefone.getId());
+                        pstmTelefone.setInt(3, z.getId());
                         pstmTelefone.addBatch();
                     }
                     pstmTelefone.executeBatch();
                 }
             }
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                conn.close();
+            }
         }
     }
 
     @Override
-    public ContatoEntity read(Integer k) throws SQLException{
+    public ContatoEntity read(Integer k) throws SQLException {
         String sql = "SELECT * FROM Contato WHERE id = ?";
-        try(Connection conn = ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
 
             pstm.setInt(1, k);
             ResultSet result = pstm.executeQuery();
 
-            ContatoEntity c = null;
-
             if (result.next()) {
-                c = new ContatoEntity();
+                ContatoEntity c = new ContatoEntity();
                 c.setId(result.getInt("id"));
                 c.setNome(result.getString("nome"));
                 c.setEmail(result.getString("email"));
+                c.setRua(result.getString("rua"));
+                c.setCidade(result.getString("cidade"));
+                c.setEstado(result.getString("estado"));
 
-                int usuarioId = result.getInt("id_usuario");
                 UsuarioEntity usuario = new UsuarioEntity();
-                usuario.setId(usuarioId);
+                usuario.setId(result.getInt("id_usuario"));
                 c.setUsuarioEntity(usuario);
-
-                int enderecoId = result.getInt("id_endereco");
-                EnderecoEntity endereco = new EnderecoEntity();
-                String sqlEndereco = "SELECT * FROM Endereco WHERE id = ?";
-                try (PreparedStatement pstmEndereco = conn.prepareStatement(sqlEndereco)) {
-                    pstmEndereco.setInt(1, enderecoId);
-                    ResultSet enderecoResult = pstmEndereco.executeQuery();
-                    if (enderecoResult.next()) {
-                        endereco.setId(enderecoId);
-                        endereco.setRua(enderecoResult.getString("rua"));
-                        endereco.setCidade(enderecoResult.getString("cidade"));
-                        endereco.setEstado(enderecoResult.getString("estado"));
-                    }
-                }
-                c.setEnderecoEntity(endereco);
-
-
 
                 List<TelefoneEntity> telefones = new ArrayList<>();
                 String sqlTelefone = "SELECT * FROM Telefone WHERE id_contato = ?";
@@ -171,72 +154,53 @@ public final class ContatoRepository implements Repository<ContatoEntity, Intege
                         TelefoneEntity telefone = new TelefoneEntity();
                         telefone.setId(telefoneResult.getInt("id"));
                         telefone.setNumero(telefoneResult.getString("numero"));
-
-                        ContatoEntity contato = new ContatoEntity();
-                        contato.setId(k);
-                        telefone.setContatoEntity(contato);
                         telefones.add(telefone);
                     }
                 }
                 c.setTelefoneEntity(telefones);
+                return c;
             }
-            return c;
+            return null;
         }
     }
 
     @Override
-    public void delete(Integer k) throws SQLException{
+    public void delete(Integer k) throws SQLException {
         String sql = "DELETE FROM Contato WHERE id = ?";
-
-        try(Connection conn =ConnectionManager.getCurrentConnection();
-            PreparedStatement pstm = conn.prepareStatement(sql)){
-            pstm.setInt(1,k);
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+            pstm.setInt(1, k);
             pstm.executeUpdate();
         }
     }
 
-    public List<ContatoEntity> readAll() throws SQLException {
-        String sql = "SELECT * FROM Contato";
-
-        Connection conn = ConnectionManager.getCurrentConnection();
+    public List<ContatoEntity> readAll(Integer usuarioId) throws SQLException {
+        String sql = "SELECT * FROM Contato WHERE id_usuario = ?";
         List<ContatoEntity> contatos = new ArrayList<>();
 
-        try (PreparedStatement pstm = conn.prepareStatement(sql);
-             ResultSet result = pstm.executeQuery()) {
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+            pstm.setInt(1, usuarioId);
+            ResultSet result = pstm.executeQuery();
 
             while (result.next()) {
                 ContatoEntity c = new ContatoEntity();
                 c.setId(result.getInt("id"));
                 c.setNome(result.getString("nome"));
                 c.setEmail(result.getString("email"));
+                c.setRua(result.getString("rua"));
+                c.setCidade(result.getString("cidade"));
+                c.setEstado(result.getString("estado"));
 
-                int usuarioId = result.getInt("id_usuario");
                 UsuarioEntity usuario = new UsuarioEntity();
-                usuario.setId(usuarioId);
+                usuario.setId(result.getInt("id_usuario"));
                 c.setUsuarioEntity(usuario);
-
-                int enderecoId = result.getInt("id_endereco");
-                EnderecoEntity endereco = new EnderecoEntity();
-                String sqlEndereco = "SELECT * FROM Endereco WHERE id = ?";
-                try (PreparedStatement pstmEndereco = conn.prepareStatement(sqlEndereco)) {
-                    pstmEndereco.setInt(1, enderecoId);
-                    ResultSet enderecoResult = pstmEndereco.executeQuery();
-                    if (enderecoResult.next()) {
-                        endereco.setId(enderecoId);
-                        endereco.setRua(enderecoResult.getString("rua"));
-                        endereco.setCidade(enderecoResult.getString("cidade"));
-                        endereco.setEstado(enderecoResult.getString("estado"));
-                    }
-                }
-                c.setEnderecoEntity(endereco);
-
 
                 List<TelefoneEntity> telefones = new ArrayList<>();
                 String sqlTelefone = "SELECT * FROM Telefone WHERE id_contato = ?";
                 try (PreparedStatement pstmTelefone = conn.prepareStatement(sqlTelefone)) {
                     pstmTelefone.setInt(1, c.getId());
                     ResultSet telefoneResult = pstmTelefone.executeQuery();
-
                     while (telefoneResult.next()) {
                         TelefoneEntity telefone = new TelefoneEntity();
                         telefone.setId(telefoneResult.getInt("id"));
@@ -247,11 +211,35 @@ public final class ContatoRepository implements Repository<ContatoEntity, Intege
                 c.setTelefoneEntity(telefones);
                 contatos.add(c);
             }
-        } finally {
-            conn.close();
         }
-
         return contatos;
     }
 
+    public List<ContatoEntity> findByUsuarioId(Integer usuarioId) throws SQLException {
+        return readAll(usuarioId);
+    }
+
+    public List<ContatoEntity> findByNomeUsuario(String nome, Integer usuarioId) throws SQLException {
+        String sql = "SELECT * FROM Contato WHERE nome LIKE ? AND id_usuario = ?";
+        List<ContatoEntity> contatos = new ArrayList<>();
+
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+            pstm.setString(1, "%" + nome + "%");
+            pstm.setInt(2, usuarioId);
+            ResultSet rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                ContatoEntity contato = new ContatoEntity();
+                contato.setId(rs.getInt("id"));
+                contato.setNome(rs.getString("nome"));
+                contato.setEmail(rs.getString("email"));
+                contato.setRua(rs.getString("rua"));
+                contato.setCidade(rs.getString("cidade"));
+                contato.setEstado(rs.getString("estado"));
+                contatos.add(contato);
+            }
+        }
+        return contatos;
+    }
 }

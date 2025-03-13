@@ -2,17 +2,14 @@ package com.vespertinedev.agendaWeb.controllers;
 
 import java.sql.SQLException;
 import jakarta.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
 import com.vespertinedev.agendaWeb.model.repositories.Fachada;
 import com.vespertinedev.agendaWeb.model.repositories.UsuarioRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
@@ -27,8 +24,8 @@ public class MainController {
 
     @RequestMapping({"/", "", "/*"})
     public String menuPrincipal(HttpSession session) {
-        if(session.getAttribute("usuario") != null){
-            return "redirect:home";
+        if(session.getAttribute("usuarioLogado") != null){
+            return "redirect:/home";
         }else{
             return "redirect:/login";
         }
@@ -39,20 +36,26 @@ public class MainController {
     public String login() {
         return "login";
     }
+
     @PostMapping("/login")
-    public String authUsuario(HttpSession session, @RequestParam String username, @RequestParam String password) {
-        System.out.println("Tentativa de login:");
-        System.out.println("Username recebido: " + username);
-        System.out.println("Password recebido: " + password);
-        if(isValidUser(username, password)){
-            session.setAttribute("user", username);
-            System.out.println("Login bem-sucedido. Redirecionando para /home");
-            return "redirect:/home";
-        }else{
-            System.out.println("Falha no login. Redirecionando para /login");
-            return "redirect:login?error=true";
+    public String authUsuario(HttpSession session, @RequestParam String username, @RequestParam String password, RedirectAttributes redirectAttributes) {
+        try {
+            if (isValidUser(username, password)) {
+                UsuarioEntity usuario = usuarioRepository.findByUsername(username);
+                session.setAttribute("usuarioLogado", usuario);
+                System.out.println("Login bem-sucedido. Redirecionando para /home");
+                return "redirect:/home";
+            } else {
+                System.out.println("Falha no login. Redirecionando para /login");
+                return "redirect:/login?error=true";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("msg", "Erro ao autenticar o usuário");
+            return "redirect:/login?error=true";
         }
     }
+
 
     @GetMapping("/cadastro")
     public String pagCadastro() {
@@ -60,30 +63,54 @@ public class MainController {
     }
 
     @PostMapping("/cadastro")
-    public String cadastroUser(UsuarioEntity usuario) {
-
-        return "redirect:/login";
+    public String cadastroUser(@ModelAttribute UsuarioEntity usuario, RedirectAttributes redirectAttributes) {
+        System.out.println("Telefone recebido: " + usuario.getTelefoneNum());
+        try {
+            if (usuarioRepository.findByUsername(usuario.getUsername()) != null) {
+                redirectAttributes.addFlashAttribute("msg", "Usuário já existe");
+                return "redirect:/cadastro";
+            }
+            usuarioRepository.save(usuario);
+            redirectAttributes.addFlashAttribute("msg", "Usuário cadastrado com sucesso");
+            return "redirect:/login";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("msg", "Erro ao cadastrar usuário");
+            return "redirect:/cadastro";
+        }
     }
 
     @GetMapping("/home")
-    public String home(Model m) {
+    public String home(Model m, HttpSession session, RedirectAttributes redirectAttributes) {
+        UsuarioEntity usuarioLogado = (UsuarioEntity) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) {
+            redirectAttributes.addFlashAttribute("msg", "Usuário não está logado");
+
+            return "redirect:/login";
+        }
+        m.addAttribute("nomeUsuario", usuarioLogado.getNome());
+
         try {
-            m.addAttribute("contatos", Fachada.getCurrentInstance().readAll());
+            m.addAttribute("contatos", Fachada.getCurrentInstance().readAll(usuarioLogado.getId()));
         } catch (SQLException e) {
             m.addAttribute("msg", "Erro ao carregar a agenda");
         }
         return "index";
     }
 
+    @GetMapping("/logout")
+    public String logout(HttpSession session){
+        session.invalidate();
+        return "redirect:/login";
+    }
+
     private boolean isValidUser(String username, String password) {
         try {
-
             UsuarioEntity user = usuarioRepository.findByUsername(username);
             return user != null && user.getPassword().equals(password);
-
         } catch (SQLException e) {
             e.printStackTrace();
-            return false; 
+            return false;
         }
     }
 }

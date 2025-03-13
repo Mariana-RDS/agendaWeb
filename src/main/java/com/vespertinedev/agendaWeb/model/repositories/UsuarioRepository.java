@@ -15,12 +15,9 @@ public final class UsuarioRepository implements GenericRepository<UsuarioEntity,
 
     protected UsuarioRepository(){}
 
-
-
     @Override
     public void create(UsuarioEntity z) throws SQLException {
         String sqlUsuario = "INSERT INTO Usuario (nome, username, password, telefone_num, rua, cidade, estado) VALUES(?,?,?,?,?,?,?)";
-
 
         try (Connection conn = ConnectionManager.getCurrentConnection()) {
 
@@ -147,5 +144,16 @@ public final class UsuarioRepository implements GenericRepository<UsuarioEntity,
     }
 
 
+    public void save(UsuarioEntity usuario) throws SQLException {
+        String sql = "INSERT INTO usuarios (username, password) VALUES (?, ?)";
+
+        try (Connection conn = ConnectionManager.getCurrentConnection();
+             PreparedStatement pstm = conn.prepareStatement(sql)) {
+
+            pstm.setString(1, usuario.getUsername());
+            pstm.setString(2, usuario.getPassword());
+            pstm.executeUpdate();
+        }
+    }
 
 }

@@ -32,9 +32,9 @@
     <tr th:each="contato : ${contatos}">
         <td th:text="${contato.id}"></td>
         <td th:text="${contato.nome}"></td>
-        <td th:text="${contato.enderecoEntity.rua}"></td>
-        <td th:text="${contato.enderecoEntity.cidade}"></td>
-        <td th:text="${contato.enderecoEntity.estado}"></td>
+        <td th:text="${contato.rua}"></td>
+        <td th:text="${contato.cidade}"></td>
+        <td th:text="${contato.estado}"></td>
         <td th:text="${contato.email}"></td>
         <td th:if="${#lists.size(contato.telefones) > 0}" th:text="${contato.telefones[0].numero}"></td>
         <td th:if="${#lists.size(contato.telefones) > 1}" th:text="${contato.telefones[1].numero}"></td>
@@ -65,15 +65,15 @@
                         </tr>
                         <tr>
                             <th>Rua:</th>
-                            <td><input type="text" name="endereco.rua" required class="form-control"/></td>
+                            <td><input type="text" name="rua" required class="form-control"/></td>
                         </tr>
                         <tr>
                             <th>Cidade:</th>
-                            <td><input type="text" name="endereco.cidade" required class="form-control"/></td>
+                            <td><input type="text" name="cidade" required class="form-control"/></td>
                         </tr>
                         <tr>
                             <th>Estado:</th>
-                            <td><input type="text" name="endereco.estado" required class="form-control"/></td>
+                            <td><input type="text" name="estado" required class="form-control"/></td>
                         </tr>
                         <tr>
                             <th>Email:</th>

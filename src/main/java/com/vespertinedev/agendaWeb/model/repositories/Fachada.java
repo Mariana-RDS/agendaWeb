@@ -2,6 +2,7 @@ package com.vespertinedev.agendaWeb.model.repositories;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.vespertinedev.agendaWeb.model.entity.ContatoEntity;
 import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
@@ -11,7 +12,7 @@ public class Fachada {
     private static Fachada myself = null;
 
 
-    private Repository<ContatoEntity, Integer> rContato = null;
+    private GenericRepository<ContatoEntity, Integer> rContato = null;
     private GenericRepository<UsuarioEntity, Integer> rUsuario = null;
 
     private Fachada() {
@@ -43,10 +44,11 @@ public class Fachada {
     public void deleteContato(int id) throws SQLException{
         this.rContato.delete(id);
     }
-    public List<ContatoEntity> readAll() throws SQLException{
-        List<ContatoEntity> contatos = ((ContatoRepository)this.rContato).readAll();
-        return contatos;
+    public List<ContatoEntity> readAll(Integer usuarioId) throws SQLException {
+        List<ContatoEntity> contatos = ((ContatoRepository) this.rContato).readAll(usuarioId);
+        return (contatos != null) ? contatos : new ArrayList<>();
     }
+
 
     /*
      * Usuario

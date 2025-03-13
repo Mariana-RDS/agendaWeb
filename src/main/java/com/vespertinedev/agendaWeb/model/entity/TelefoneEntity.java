@@ -10,6 +10,7 @@ public class TelefoneEntity {
     private Integer id;
     private String numero;
     private ContatoEntity contatoEntity;
+    private Integer id_contato;
 
     public Integer getId(){
         return id;
@@ -26,6 +27,8 @@ public class TelefoneEntity {
     public void setNumero(String numero){
         this.numero = numero;
     }
+
+
 
     public ContatoEntity getContatoEntity(){
         return contatoEntity;

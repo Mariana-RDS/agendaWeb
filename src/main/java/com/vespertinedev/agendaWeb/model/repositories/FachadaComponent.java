@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vespertinedev.agendaWeb.model.entity.ContatoEntity;
-import com.vespertinedev.agendaWeb.model.repositories.ContatoRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FachadaComponent {
 
-    private Repository<ContatoEntity, Integer> rContato =null;
+    private GenericRepository<ContatoEntity, Integer> rContato =null;
 
     public FachadaComponent(){
         rContato = new ContatoRepository();
@@ -29,9 +28,9 @@ public class FachadaComponent {
     public void delete(int id) throws SQLException{
         this.rContato.delete(id);
     }
-    public List<ContatoEntity> readAll() throws SQLException{
-        List<ContatoEntity> contatos = ((ContatoRepository) this.rContato).readAll();
+    public List<ContatoEntity> readAll(Integer usuarioId) throws SQLException {
+        List<ContatoEntity> contatos = ((ContatoRepository) this.rContato).readAll(usuarioId);
         return (contatos != null) ? contatos : new ArrayList<>();
-
     }
+
 }

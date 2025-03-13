@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.vespertinedev.agendaWeb.model.entity.ContatoEntity;
+import com.vespertinedev.agendaWeb.model.entity.TelefoneEntity;
+import com.vespertinedev.agendaWeb.model.entity.UsuarioEntity;
+import com.vespertinedev.agendaWeb.model.repositories.ContatoRepository;
 import com.vespertinedev.agendaWeb.model.repositories.Fachada;
 import com.vespertinedev.agendaWeb.model.repositories.FachadaComponent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +34,21 @@ public class ContatoController {
     @Autowired
     private FachadaComponent fachadaC;
 
+    @Autowired
+    private ContatoRepository contatoRepository;
+
     @GetMapping({"", "/", "listar"})
-    public String contatos(Model m, RedirectAttributes redirectAttributes){
+    public String contatos(Model m, HttpSession session, RedirectAttributes redirectAttributes) {
+        UsuarioEntity usuarioLogado = (UsuarioEntity) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) {
+            redirectAttributes.addFlashAttribute("msg", "Usuário não está logado");
+            return "redirect:/login";
+        }
 
-        try{
-            List<ContatoEntity> contatos = fachadaC.readAll();
+        try {
+            List<ContatoEntity> contatos = contatoRepository.readAll(usuarioLogado.getId());
             m.addAttribute("contatos", contatos);
-
-            if(this.msg != null){
-                m.addAttribute("msg",this.msg);
-                this.msg = null;
-            }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             redirectAttributes.addFlashAttribute("msg", "Erro ao buscar a lista de contatos");
             return "redirect:/";
         }
@@ -50,16 +56,19 @@ public class ContatoController {
     }
 
     @PostMapping("/criar")
-    public String criar(Model m, ContatoEntity c, HttpServletRequest request){
-
-        try{
-            Fachada.getCurrentInstance().create(c);
-        }catch(SQLException e){
-            this.msg ="Erro ao cadastrar";
-            e.printStackTrace();
+    public String cadastroContato(ContatoEntity contato, HttpSession session) {
+        UsuarioEntity usuarioLogado = (UsuarioEntity) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) {
+            return "redirect:/login";
         }
 
-        return "redirect:/index";
+        try {
+            contatoRepository.create(contato, usuarioLogado.getId());
+            return "redirect:/home";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "redirect:/erro";
+        }
     }
 
     @GetMapping("/editar/{id}")
@@ -88,29 +97,30 @@ public class ContatoController {
     }
 
     @PostMapping("/editar")
-    public String editar(Model m, @ModelAttribute ContatoEntity c) {
-        try {
-            ContatoEntity contatoExistente = Fachada.getCurrentInstance().readContato(c.getId());
+    public String editar(@ModelAttribute ContatoEntity contato, HttpSession session, RedirectAttributes redirectAttributes) {
+        UsuarioEntity usuarioLogado = (UsuarioEntity) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) {
+            return "redirect:/login";
+        }
 
-            if (contatoExistente == null) {
-                this.msg = "Contato não encontrado.";
-                return "redirect:/index";
+        try {
+            for (TelefoneEntity telefone : contato.getTelefones()) {
+                if (telefone.getId() == null) {
+                    throw new SQLException("ID do telefone não pode ser nulo");
+                }
             }
 
-            c.setUsuarioEntity(contatoExistente.getUsuarioEntity());
-
-            Fachada.getCurrentInstance().update(c);
-
-            this.msg = "Contato editado com sucesso";
-            return "redirect:/index";
+            contato.setUsuarioEntity(usuarioLogado);
+            contatoRepository.update(contato, usuarioLogado.getId());
+            redirectAttributes.addFlashAttribute("msg", "Contato editado com sucesso");
         } catch (SQLException e) {
-            this.msg = "Não foi possível editar o contato";
-            return "redirect:/index";
+            redirectAttributes.addFlashAttribute("msg", "Erro ao editar o contato: " + e.getMessage());
         }
+        return "redirect:/contato/listar";
     }
 
 
-    @SuppressWarnings("finally")
+
     @GetMapping("/deletar/{id}")
     public String deletar(Model m,@PathVariable Integer id){
         try{
@@ -122,5 +132,26 @@ public class ContatoController {
         }finally{
             return "redirect:/index";
         }
+    }
+
+    @GetMapping("/contato/pesquisar")
+    public String pesquisarContatos(@RequestParam(name = "nome", required = false) String nome, Model model, HttpSession session) {
+        UsuarioEntity usuarioLogado = (UsuarioEntity) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            List<ContatoEntity> contatos;
+            if (nome != null && !nome.isEmpty()) {
+                contatos = contatoRepository.findByNomeUsuario(nome, usuarioLogado.getId());
+            } else {
+                contatos = contatoRepository.findByUsuarioId(usuarioLogado.getId());
+            }
+            model.addAttribute("contatos", contatos);
+        } catch (SQLException e) {
+            model.addAttribute("msg", "Erro ao pesquisar contatos");
+        }
+        return "index";
     }
 }

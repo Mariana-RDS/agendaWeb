@@ -10,6 +10,7 @@ import com.vespertinedev.agendaWeb.model.repositories.UsuarioRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.mindrot.jbcrypt.BCrypt;
 
 
 @Controller
@@ -40,13 +41,14 @@ public class MainController {
     @PostMapping("/login")
     public String authUsuario(HttpSession session, @RequestParam String username, @RequestParam String password, RedirectAttributes redirectAttributes) {
         try {
-            if (isValidUser(username, password)) {
-                UsuarioEntity usuario = usuarioRepository.findByUsername(username);
+            UsuarioEntity usuario = usuarioRepository.findByUsername(username);
+            if (usuario != null && BCrypt.checkpw(password, usuario.getPassword())) {
+                
                 session.setAttribute("usuarioLogado", usuario);
-                System.out.println("Login bem-sucedido. Redirecionando para /home");
+
                 return "redirect:/home";
             } else {
-                System.out.println("Falha no login. Redirecionando para /login");
+
                 return "redirect:/login?error=true";
             }
         } catch (SQLException e) {
@@ -89,6 +91,7 @@ public class MainController {
             return "redirect:/login";
         }
         m.addAttribute("nomeUsuario", usuarioLogado.getNome());
+        m.addAttribute("usuarioLogado", usuarioLogado);
 
         try {
             m.addAttribute("contatos", Fachada.getCurrentInstance().readAll(usuarioLogado.getId()));

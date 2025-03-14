@@ -10,8 +10,8 @@
 
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/">Bem-vindo(a)!</a>
-        <span th:text="${nomeUsuario}"></span>
+      <a class="navbar-brand" href="/">Bem-vindo(a), <span th:text="${nomeUsuario}"></span>!</a>
+
       <button class="navbar-toggler" type="button"
               data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
               aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -20,8 +20,10 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link active"naria-current="page"href="/editarUsuario">Perfil</a></li>
-
+          <li class="nav-item" th:if="${usuarioLogado != null}"><a class="nav-link active" aria-current="page" th:href="@{/usuario/editar/{id}(id=${usuarioLogado.id})}">Perfil</a></li>
+            <li class="nav-item" th:unless="${usuarioLogado != null}">
+                <a class="nav-link" th:href="@{/login}">Login</a>
+            </li>
         </ul>
           <form>
               <a href="/logout" class="btn btn-danger">Logout</a>
